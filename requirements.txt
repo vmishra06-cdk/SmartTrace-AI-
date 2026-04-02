@@ -1,0 +1,29 @@
+# ──────────────────────────────────────────────
+# SmartTrace AI — Python Dependencies
+# Install: pip install -r requirements.txt
+# Python 3.9+ recommended
+# ──────────────────────────────────────────────
+
+# Core web framework
+flask==3.0.3
+flask-cors==4.0.1
+flask-socketio==5.3.6
+
+# WebSocket server
+eventlet==0.35.2
+
+# Background task scheduler
+APScheduler==3.10.4
+
+# HTTP client (for webhook dispatch)
+requests==2.31.0
+
+# Image processing
+Pillow==10.3.0
+
+# Vector search (optional but recommended for production)
+faiss-cpu==1.8.0
+numpy==1.26.4
+
+# Utilities
+python-dotenv==1.0.1

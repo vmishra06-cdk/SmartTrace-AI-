@@ -1,0 +1,43 @@
+2026-04-03 00:31:47,281 [INFO] Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-03 00:31:47,282 [INFO] Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-03 00:31:47,282 [INFO] Added job "auto_sync_job" to job store "default"
+2026-04-03 00:31:47,282 [INFO] Added job "stale_asset_check" to job store "default"
+2026-04-03 00:31:47,282 [INFO] Scheduler started
+2026-04-03 00:31:47,283 [INFO] [INIT] SmartTrace AI backend starting...
+2026-04-03 00:31:47,283 [INFO] [INIT] FAISS available: True
+2026-04-03 00:31:47,283 [INFO] [INIT] PIL available: True
+2026-04-03 00:31:47,340 [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.25.247.102:5000
+2026-04-03 00:31:47,340 [INFO] [33mPress CTRL+C to quit[0m
+2026-04-03 00:31:47,341 [INFO]  * Restarting with watchdog (fsevents)
+2026-04-03 00:31:50,378 [INFO] Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-03 00:31:50,378 [INFO] Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-03 00:31:50,379 [INFO] Added job "auto_sync_job" to job store "default"
+2026-04-03 00:31:50,379 [INFO] Added job "stale_asset_check" to job store "default"
+2026-04-03 00:31:50,379 [INFO] Scheduler started
+2026-04-03 00:31:50,380 [INFO] [INIT] SmartTrace AI backend starting...
+2026-04-03 00:31:50,380 [INFO] [INIT] FAISS available: True
+2026-04-03 00:31:50,380 [INFO] [INIT] PIL available: True
+2026-04-03 00:31:50,436 [WARNING]  * Debugger is active!
+2026-04-03 00:31:50,468 [INFO]  * Debugger PIN: 134-366-446
+2026-04-03 00:32:02,894 [INFO] 127.0.0.1 - - [03/Apr/2026 00:32:02] "[33mGET /api/v1 HTTP/1.1[0m" 404 -
+2026-04-03 00:32:03,417 [INFO] 127.0.0.1 - - [03/Apr/2026 00:32:03] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-04-03 00:32:15,269 [INFO] 127.0.0.1 - - [03/Apr/2026 00:32:15] "GET /api/v1/docs HTTP/1.1" 200 -
+2026-04-03 00:33:06,011 [INFO] 127.0.0.1 - - [03/Apr/2026 00:33:06] "GET / HTTP/1.1" 200 -
+2026-04-03 00:33:07,341 [INFO] 127.0.0.1 - - [03/Apr/2026 00:33:07] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-04-03 00:33:19,752 [INFO] 172.25.247.102 - - [03/Apr/2026 00:33:19] "GET / HTTP/1.1" 200 -
+2026-04-03 00:33:19,995 [INFO] 172.25.247.102 - - [03/Apr/2026 00:33:19] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-04-03 00:36:09,057 [INFO]  * Detected change in '/Users/vedantmishra/Downloads/cert-generator/fun/app.py', reloading
+2026-04-03 00:36:09,232 [INFO]  * Restarting with watchdog (fsevents)
+2026-04-03 00:36:10,311 [INFO] Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-03 00:36:10,311 [INFO] Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-03 00:36:10,312 [INFO] Added job "auto_sync_job" to job store "default"
+2026-04-03 00:36:10,312 [INFO] Added job "stale_asset_check" to job store "default"
+2026-04-03 00:36:10,312 [INFO] Scheduler started
+2026-04-03 00:36:10,312 [INFO] [INIT] SmartTrace AI backend starting...
+2026-04-03 00:36:10,312 [INFO] [INIT] FAISS available: True
+2026-04-03 00:36:10,312 [INFO] [INIT] PIL available: True
+2026-04-03 00:36:10,334 [WARNING]  * Debugger is active!
+2026-04-03 00:36:10,349 [INFO]  * Debugger PIN: 134-366-446

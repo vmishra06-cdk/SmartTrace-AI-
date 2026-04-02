@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartTrace AI | World-Class Edition</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        acid: { 400: '#b8ff57', 500: '#9ef01a', 600: '#70e000' },
+        void: { 900: '#060608', 800: '#0d0d12', 700: '#141419', 600: '#1c1c25' },
+      },
+      fontFamily: {
+        syne: ['Syne', 'sans-serif'],
+        mono: ['Space Mono', 'monospace'],
+        dm: ['DM Sans', 'sans-serif'],
+      },
+      animation: {
+        'scan-v': 'scanV 4s ease-in-out infinite',
+        'ticker': 'ticker 20s linear infinite',
+        'pulse-ring': 'pulseRing 2s ease-out infinite',
+        'float': 'float 6s ease-in-out infinite',
+        'shimmer': 'shimmer 2s linear infinite',
+      },
+      keyframes: {
+        scanV: { '0%,100%': {top:'0%',opacity:'0'}, '10%,90%': {opacity:'1'}, '50%': {top:'100%'} },
+        ticker: { '0%': {transform:'translateX(0%)'}, '100%': {transform:'translateX(-50%)'} },
+        pulseRing: { '0%': {transform:'scale(1)',opacity:'1'}, '100%': {transform:'scale(2)',opacity:'0'} },
+        float: { '0%,100%': {transform:'translateY(0)'}, '50%': {transform:'translateY(-12px)'} },
+        shimmer: { '0%': {backgroundPosition:'-200% center'}, '100%': {backgroundPosition:'200% center'} },
+      }
+    }
+  }
+}
+</script>
+<style>
+:root {
+  --acid: #b8ff57;
+  --void: #060608;
+  --glass: rgba(255,255,255,0.04);
+  --border: rgba(255,255,255,0.07);
+}
+*{box-sizing:border-box}
+body { font-family: 'DM Sans', sans-serif; background: var(--void); color: #e2e8f0; overflow-x: hidden; }
+.font-syne { font-family: 'Syne', sans-serif; }
+.font-mono { font-family: 'Space Mono', monospace; }
+
+/* Glass */
+.glass { background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border); }
+.glass-hover { transition: all 0.3s ease; }
+.glass-hover:hover { background: rgba(255,255,255,0.07); border-color: rgba(184,255,87,0.3); transform: translateY(-2px); box-shadow: 0 12px 40px rgba(184,255,87,0.08); }
+
+/* Acid text */
+.text-acid { color: var(--acid); }
+.text-acid-glow { color: var(--acid); text-shadow: 0 0 20px rgba(184,255,87,0.6); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(184,255,87,0.3); border-radius: 99px; }
+
+/* Range slider */
+input[type=range] { -webkit-appearance: none; background: transparent; width: 100%; }
+input[type=range]::-webkit-slider-runnable-track { background: rgba(255,255,255,0.1); height: 3px; border-radius: 3px; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--acid); border-radius: 50%; margin-top: -5.5px; cursor: pointer; box-shadow: 0 0 10px rgba(184,255,87,0.5); transition: transform 0.2s; }
+input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.3); }
+
+/* Toast */
+.toast { position:fixed; bottom:2rem; right:2rem; z-index:9999; transform:translateY(100px); opacity:0; transition:all 0.4s cubic-bezier(0.16,1,0.3,1); }
+.toast.show { transform:translateY(0); opacity:1; }
+
+/* Modal */
+.modal-wrap { opacity:0; pointer-events:none; transition:opacity 0.3s ease; }
+.modal-wrap.open { opacity:1; pointer-events:auto; }
+.modal-inner { transition: transform 0.4s cubic-bezier(0.16,1,0.3,1), opacity 0.3s ease; transform: scale(0.95) translateY(20px); opacity:0; }
+.modal-wrap.open .modal-inner { transform:scale(1) translateY(0); opacity:1; }
+
+/* Noise overlay */
+.noise::after { content:''; position:absolute; inset:0; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events:none; z-index:0; }
+
+/* Status dot */
+.status-online::before { content:''; display:inline-block; width:8px; height:8px; background:var(--acid); border-radius:50%; margin-right:6px; box-shadow:0 0 10px var(--acid); animation:pulse 2s ease infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* Shimmer btn */
+.shimmer-btn { background: linear-gradient(90deg, var(--acid) 0%, #fff 40%, var(--acid) 60%, #9ef01a 100%); background-size: 200% auto; animation: shimmer 2s linear infinite; color: #000; }
+
+/* Tag */
+.tag { display:inline-flex; align-items:center; gap:4px; font-size:10px; font-family:'Space Mono',monospace; background:rgba(184,255,87,0.08); border:1px solid rgba(184,255,87,0.2); color:var(--acid); padding:2px 8px; border-radius:99px; text-transform:uppercase; letter-spacing:0.05em; }
+
+/* Confidence bar */
+.conf-bar { height:3px; border-radius:3px; background:linear-gradient(90deg, var(--acid), #70e000); box-shadow:0 0 8px rgba(184,255,87,0.4); transition: width 1s ease; }
+
+/* Card hover glow */
+.card-glow:hover { box-shadow: 0 0 0 1px rgba(184,255,87,0.2), 0 20px 60px rgba(184,255,87,0.06); }
+
+/* Asset card image overlay */
+.asset-img-wrap::after { content:''; position:absolute; inset:0; background:linear-gradient(to top, rgba(6,6,8,0.8) 0%, transparent 60%); }
+
+/* Scan line animation */
+.scanline { position:absolute; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--acid),transparent); box-shadow:0 0 20px var(--acid); animation:scanV 4s ease-in-out infinite; pointer-events:none; }
+
+/* Glow circle bg */
+.glow-orb { position:fixed; border-radius:50%; filter:blur(120px); pointer-events:none; mix-blend-mode:screen; z-index:-1; }
+
+/* Ticker tape */
+.ticker-wrap { overflow:hidden; white-space:nowrap; }
+.ticker-inner { display:inline-block; animation:ticker 20s linear infinite; }
+.ticker-inner span { display:inline-block; margin-right:48px; }
+
+/* Input style */
+.inp { background:rgba(0,0,0,0.4); border:1px solid var(--border); border-radius:12px; padding:10px 16px; color:#fff; font-family:'DM Sans',sans-serif; font-size:14px; outline:none; transition:border-color 0.2s; width:100%; }
+.inp:focus { border-color:rgba(184,255,87,0.5); box-shadow:0 0 0 3px rgba(184,255,87,0.06); }
+.inp::placeholder { color:rgba(255,255,255,0.25); }
+
+/* Select style */
+select.inp option { background:#0d0d12; }
+
+/* Toggle */
+.toggle-track { width:40px; height:22px; background:rgba(255,255,255,0.1); border-radius:99px; cursor:pointer; position:relative; transition:background 0.3s; border:1px solid var(--border); }
+.toggle-track.on { background:rgba(184,255,87,0.3); border-color:rgba(184,255,87,0.5); }
+.toggle-thumb { position:absolute; top:3px; left:3px; width:14px; height:14px; background:rgba(255,255,255,0.5); border-radius:50%; transition:transform 0.3s, background 0.3s; }
+.toggle-track.on .toggle-thumb { transform:translateX(18px); background:var(--acid); box-shadow:0 0 8px var(--acid); }
+
+/* Sidebar nav active */
+.nav-item.active { background:rgba(184,255,87,0.08); border-color:rgba(184,255,87,0.25); color:var(--acid); }
+.nav-item.active i { color:var(--acid); }
+
+/* Section visibility */
+.section { display:none; }
+.section.active { display:block; }
+
+/* Chart bar */
+.chart-bar { transition: height 1s ease; border-radius:4px 4px 0 0; }
+
+/* Table */
+.tbl { width:100%; border-collapse:collapse; }
+.tbl th { text-align:left; font-size:10px; font-family:'Space Mono',monospace; text-transform:uppercase; letter-spacing:0.08em; color:rgba(255,255,255,0.35); padding:8px 16px; border-bottom:1px solid var(--border); }
+.tbl td { padding:14px 16px; border-bottom:1px solid rgba(255,255,255,0.04); font-size:13px; vertical-align:middle; }
+.tbl tr:hover td { background:rgba(255,255,255,0.02); }
+
+/* Alert strip */
+.alert-bar { background:linear-gradient(90deg, rgba(239,68,68,0.15), rgba(239,68,68,0.05)); border-left:3px solid #ef4444; }
+.alert-bar.warn { background:linear-gradient(90deg, rgba(251,191,36,0.15), rgba(251,191,36,0.05)); border-left-color:#fbbf24; }
+.alert-bar.info { background:linear-gradient(90deg, rgba(184,255,87,0.1), rgba(184,255,87,0.03)); border-left-color:var(--acid); }
+
+/* Drag drop active */
+.drop-active { border-color:var(--acid) !important; background:rgba(184,255,87,0.05) !important; }
+</style>
+</head>
+<body class="min-h-screen noise">
+
+<!-- Glow Orbs -->
+<div class="glow-orb w-[600px] h-[600px] bg-acid-600/15 top-[-200px] left-[-200px]"></div>
+<div class="glow-orb w-[500px] h-[500px] bg-purple-700/10 top-[30%] right-[-150px]"></div>
+<div class="glow-orb w-[400px] h-[400px] bg-acid-600/8 bottom-[-100px] left-[30%]"></div>
+
+<!-- Toast -->
+<div id="toast" class="toast glass px-5 py-3 rounded-2xl border border-white/10 flex items-center gap-3 text-sm max-w-xs">
+  <i data-lucide="check-circle" class="w-4 h-4 text-acid-400 shrink-0"></i>
+  <span id="toast-msg" class="text-white">Action completed</span>
+</div>
+
+<!-- Layout Wrapper -->
+<div class="flex min-h-screen">
+
+  <!-- === SIDEBAR === -->
+  <aside class="w-[260px] shrink-0 glass border-r border-white/5 flex flex-col sticky top-0 h-screen z-30">
+    <!-- Logo -->
+    <div class="p-6 border-b border-white/5">
+      <div class="flex items-center gap-3 mb-1">
+        <div class="w-9 h-9 rounded-xl bg-acid-500/20 border border-acid-500/30 flex items-center justify-center">
+          <i data-lucide="scan-eye" class="w-5 h-5 text-acid-400"></i>
+        </div>
+        <span class="font-syne text-xl font-800 text-white">SmartTrace<span class="text-acid">.ai</span></span>
+      </div>
+      <div class="flex items-center gap-2 mt-3 ml-1">
+        <span class="status-online text-[11px] font-mono text-slate-400">System Active</span>
+      </div>
+    </div>
+
+    <!-- Nav -->
+    <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+      <p class="text-[10px] font-mono text-slate-600 uppercase tracking-widest px-3 py-2">Core</p>
+      <button onclick="goTo('dashboard')" class="nav-item active w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border border-transparent text-slate-300 hover:text-white transition text-sm font-medium">
+        <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
+      </button>
+      <button onclick="goTo('assets')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border border-transparent text-slate-300 hover:text-white transition text-sm font-medium">
+        <i data-lucide="package" class="w-4 h-4"></i> Asset Library
+      </button>
+      <button onclick="goTo('scan')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border border-transparent text-slate-300 hover:text-white transition text-sm font-medium">
+        <i data-lucide="scan" class="w-4 h-4"></i> Live Scanner
+      </button>
+      <button onclick="goTo('analytics')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border border-transparent text-slate-300 hover:text-white transition text-sm font-medium">
+        <i data-lucide="bar-chart-3" class="w-4 h-4"></i> Analytics
+      </button>
+      <button onclick="goTo('alerts')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border border-transparent text-slate-300 hover:text-white transition text-sm font-medium">
+        <i data-lucide="bell" class="w-4 h-4"></i> Alerts
+        <span id="alert-badge" class="ml-auto text-[10px] font-mono bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-full">3</span>
+      </button>
+      <button onclick="goTo('zones')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border border-transparent text-slate-300 hover:text-white transition text-sm font-medium">
+        <i data-lucide="map" class="w-4 h-4"></i> Zone Map
+      </button>
+      <p class="text-[10px] font-mono text-slate-600 uppercase tracking-widest px-3 py-2 mt-2">System</p>
+      <button onclick="goTo('api')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border border-transparent text-slate-300 hover:text-white transition text-sm font-medium">
+        <i data-lucide="code-2" class="w-4 h-4"></i> API Console
+      </button>
+      <button onclick="goTo('settings')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border border-transparent text-slate-300 hover:text-white transition text-sm font-medium">
+        <i data-lucide="settings" class="w-4 h-4"></i> Settings
+      </button>
+      <button onclick="goTo('logs')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border border-transparent text-slate-300 hover:text-white transition text-sm font-medium">
+        <i data-lucide="terminal" class="w-4 h-4"></i> System Logs
+      </button>
+    </nav>
+
+    <!-- Sidebar Footer -->
+    <div class="p-4 border-t border-white/5">
+      <div class="glass rounded-xl p-3 flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-acid-400 to-green-600 flex items-center justify-center text-xs font-bold text-black font-mono">AD</div>
+        <div>
+          <p class="text-xs font-semibold text-white">Admin</p>
+          <p class="text-[10px] font-mono text-slate-500">Enterprise Tier</p>
+        </div>
+        <button onclick="openModal('profile-modal')" class="ml-auto text-slate-500 hover:text-acid-400 transition"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- === MAIN === -->
+  <div class="flex-1 flex flex-col min-h-screen overflow-hidden">
+
+    <!-- Top Bar -->
+    <header class="h-16 glass border-b border-white/5 flex items-center justify-between px-6 sticky top-0 z-20">
+      <div class="flex items-center gap-3">
+        <button id="global-search-btn" class="flex items-center gap-2 glass rounded-full px-4 py-2 text-sm text-slate-400 hover:text-white transition w-64 cursor-text" onclick="openModal('search-modal')">
+          <i data-lucide="search" class="w-4 h-4"></i>
+          <span>Search assets, zones, IDs...</span>
+          <span class="ml-auto font-mono text-[10px] bg-white/10 px-2 py-0.5 rounded text-slate-500">⌘K</span>
+        </button>
+      </div>
+      <div class="flex items-center gap-3">
+        <!-- Live stats ticker -->
+        <div class="hidden lg:flex items-center gap-4 text-xs font-mono text-slate-500 mr-2">
+          <span>FPS <span class="text-acid-400" id="fps-counter">60</span></span>
+          <span>LAT <span class="text-acid-400" id="lat-counter">12ms</span></span>
+          <span>VEC <span class="text-acid-400" id="vec-counter">4</span></span>
+        </div>
+        <button onclick="openModal('upload-modal')" class="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-full glass border border-white/10 text-white hover:border-acid-500/50 hover:text-acid-400 transition">
+          <i data-lucide="upload" class="w-3.5 h-3.5"></i> Upload
+        </button>
+        <button onclick="openModal('cam-modal')" class="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-full shimmer-btn rounded-full font-semibold transition">
+          <i data-lucide="camera" class="w-3.5 h-3.5"></i> Live Scan
+        </button>
+        <button onclick="openModal('notif-modal')" class="relative w-9 h-9 flex items-center justify-center glass rounded-full hover:bg-white/10 transition">
+          <i data-lucide="bell" class="w-4 h-4 text-slate-400"></i>
+          <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Ticker -->
+    <div class="border-b border-white/5 py-2 px-6 overflow-hidden">
+      <div class="ticker-inner text-[11px] font-mono text-slate-500">
+        <span class="text-acid-400">▲ ZONE_A</span><span> — Leica Q2 tracked → Studio Floor 1</span>
+        <span class="mx-8">|</span>
+        <span class="text-amber-400">⚠ ALERT</span><span> — Unrecognized asset in Lobby</span>
+        <span class="mx-8">|</span>
+        <span class="text-acid-400">✓ SYNC</span><span> — Vector DB updated 2 mins ago</span>
+        <span class="mx-8">|</span>
+        <span class="text-slate-400">SYSTEM</span><span> — GPU utilization: 38% — 5 models active</span>
+        <span class="mx-8">|</span>
+        <span class="text-acid-400">▲ ZONE_A</span><span> — Leica Q2 tracked → Studio Floor 1</span>
+        <span class="mx-8">|</span>
+        <span class="text-amber-400">⚠ ALERT</span><span> — Unrecognized asset in Lobby</span>
+        <span class="mx-8">|</span>
+        <span class="text-acid-400">✓ SYNC</span><span> — Vector DB updated 2 mins ago</span>
+        <span class="mx-8">|</span>
+        <span class="text-slate-400">SYSTEM</span><span> — GPU utilization: 38% — 5 models active</span>
+      </div>
+    </div>
+
+    <!-- Content area -->
+    <main class="flex-1 overflow-y-auto p-6 space-y-6">
+
+      <!-- ===================== DASHBOARD ===================== -->
+      <div id="sec-dashboard" class="section active">
+        <!-- KPI Row -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div class="glass card-glow glass-hover rounded-2xl p-5 border border-white/5">
+            <div class="flex justify-between items-start mb-4">
+              <div class="w-10 h-10 rounded-xl bg-acid-500/15 border border-acid-500/20 flex items-center justify-center">
+                <i data-lucide="package-check" class="w-5 h-5 text-acid-400"></i>
+              </div>
+              <span class="tag">+12%</span>
+            </div>
+            <p class="text-3xl font-syne font-bold text-white mb-1" id="kpi-assets">4</p>
+            <p class="text-xs text-slate-500">Total Assets Indexed</p>
+          </div>
+          <div class="glass card-glow glass-hover rounded-2xl p-5 border border-white/5">
+            <div class="flex justify-between items-start mb-4">
+              <div class="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center">
+                <i data-lucide="scan-eye" class="w-5 h-5 text-emerald-400"></i>
+              </div>
+              <span class="tag" style="background:rgba(52,211,153,0.08);border-color:rgba(52,211,153,0.25);color:#34d399">LIVE</span>
+            </div>
+            <p class="text-3xl font-syne font-bold text-white mb-1" id="kpi-scans">127</p>
+            <p class="text-xs text-slate-500">Scans Today</p>
+          </div>
+          <div class="glass card-glow glass-hover rounded-2xl p-5 border border-white/5">
+            <div class="flex justify-between items-start mb-4">
+              <div class="w-10 h-10 rounded-xl bg-red-500/15 border border-red-500/20 flex items-center justify-center">
+                <i data-lucide="triangle-alert" class="w-5 h-5 text-red-400"></i>
+              </div>
+              <span class="tag" style="background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.25);color:#f87171">HIGH</span>
+            </div>
+            <p class="text-3xl font-syne font-bold text-white mb-1">3</p>
+            <p class="text-xs text-slate-500">Active Alerts</p>
+          </div>
+          <div class="glass card-glow glass-hover rounded-2xl p-5 border border-white/5">
+            <div class="flex justify-between items-start mb-4">
+              <div class="w-10 h-10 rounded-xl bg-purple-500/15 border border-purple-500/20 flex items-center justify-center">
+                <i data-lucide="cpu" class="w-5 h-5 text-purple-400"></i>
+              </div>
+              <span class="tag" style="background:rgba(168,85,247,0.08);border-color:rgba(168,85,247,0.25);color:#c084fc">GPU</span>
+            </div>
+            <p class="text-3xl font-syne font-bold text-white mb-1">38%</p>
+            <p class="text-xs text-slate-500">GPU Utilization</p>
+          </div>
+        </div>
+
+        <!-- Main content row -->
+        <div class="grid lg:grid-cols-3 gap-6">
+          <!-- Recent Assets -->
+          <div class="lg:col-span-2 glass rounded-2xl border border-white/5 overflow-hidden">
+            <div class="px-6 py-4 border-b border-white/5 flex justify-between items-center">
+              <h3 class="font-syne font-semibold text-white text-sm">Recent Assets</h3>
+              <div class="flex items-center gap-2">
+                <input type="range" id="conf-threshold" min="50" max="100" value="80" class="w-24">
+                <span id="conf-val" class="font-mono text-[11px] text-acid-400 w-10">80%</span>
+                <div class="flex glass rounded-lg p-0.5 gap-0.5">
+                  <button id="vw-grid" onclick="setView('grid')" class="p-1.5 rounded text-acid-400"><i data-lucide="layout-grid" class="w-3.5 h-3.5"></i></button>
+                  <button id="vw-list" onclick="setView('list')" class="p-1.5 rounded text-slate-500 hover:text-white"><i data-lucide="list" class="w-3.5 h-3.5"></i></button>
+                </div>
+              </div>
+            </div>
+            <div id="asset-grid" class="p-5">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+
+          <!-- Right panel -->
+          <div class="flex flex-col gap-4">
+            <!-- System Health -->
+            <div class="glass rounded-2xl border border-white/5 p-5">
+              <h3 class="font-syne font-semibold text-white text-sm mb-4">System Health</h3>
+              <div class="space-y-3">
+                <div>
+                  <div class="flex justify-between text-xs mb-1"><span class="text-slate-400">CPU Load</span><span class="font-mono text-acid-400">24%</span></div>
+                  <div class="h-1.5 bg-white/10 rounded-full"><div class="conf-bar" style="width:24%"></div></div>
+                </div>
+                <div>
+                  <div class="flex justify-between text-xs mb-1"><span class="text-slate-400">GPU Load</span><span class="font-mono text-acid-400">38%</span></div>
+                  <div class="h-1.5 bg-white/10 rounded-full"><div class="conf-bar" style="width:38%"></div></div>
+                </div>
+                <div>
+                  <div class="flex justify-between text-xs mb-1"><span class="text-slate-400">RAM Usage</span><span class="font-mono text-acid-400">61%</span></div>
+                  <div class="h-1.5 bg-white/10 rounded-full"><div class="conf-bar" style="width:61%;background:linear-gradient(90deg,#f59e0b,#f97316)"></div></div>
+                </div>
+                <div>
+                  <div class="flex justify-between text-xs mb-1"><span class="text-slate-400">Vector DB</span><span class="font-mono text-acid-400">12%</span></div>
+                  <div class="h-1.5 bg-white/10 rounded-full"><div class="conf-bar" style="width:12%"></div></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Terminal -->
+            <div class="glass rounded-2xl border border-white/5 overflow-hidden flex flex-col h-[220px]">
+              <div class="px-4 py-2.5 border-b border-white/5 flex items-center gap-2">
+                <div class="flex gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-red-400/70"></div><div class="w-2.5 h-2.5 rounded-full bg-amber-400/70"></div><div class="w-2.5 h-2.5 rounded-full bg-acid-400/70"></div></div>
+                <span class="text-[10px] font-mono text-slate-500 ml-1">kernel.tty</span>
+              </div>
+              <div id="terminal-out" class="p-4 font-mono text-[11px] overflow-y-auto flex-1 space-y-1 text-slate-300"></div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="glass rounded-2xl border border-white/5 p-4">
+              <h3 class="font-syne font-semibold text-white text-sm mb-3">Quick Actions</h3>
+              <div class="grid grid-cols-2 gap-2">
+                <button onclick="doAction('sync')" class="glass glass-hover rounded-xl p-3 text-center text-xs text-slate-300 hover:text-acid-400 transition flex flex-col items-center gap-2">
+                  <i data-lucide="refresh-cw" class="w-4 h-4"></i> Sync DB
+                </button>
+                <button onclick="doAction('export')" class="glass glass-hover rounded-xl p-3 text-center text-xs text-slate-300 hover:text-acid-400 transition flex flex-col items-center gap-2">
+                  <i data-lucide="download" class="w-4 h-4"></i> Export
+                </button>
+                <button onclick="doAction('purge')" class="glass glass-hover rounded-xl p-3 text-center text-xs text-slate-300 hover:text-acid-400 transition flex flex-col items-center gap-2">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i> Purge Logs
+                </button>
+                <button onclick="openModal('webhook-modal')" class="glass glass-hover rounded-xl p-3 text-center text-xs text-slate-300 hover:text-acid-400 transition flex flex-col items-center gap-2">
+                  <i data-lucide="webhook" class="w-4 h-4"></i> Webhooks
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== ASSETS ===================== -->
+      <div id="sec-assets" class="section">
+        <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+          <div class="px-6 py-4 border-b border-white/5 flex flex-wrap gap-4 justify-between items-center">
+            <h3 class="font-syne font-semibold text-white">Asset Library</h3>
+            <div class="flex items-center gap-3">
+              <input type="text" id="asset-search" placeholder="Search assets..." class="inp w-56" oninput="filterAssets(this.value)">
+              <select id="zone-filter" class="inp w-40" onchange="filterAssets(document.getElementById('asset-search').value)">
+                <option value="">All Zones</option>
+                <option>Studio Floor 1</option>
+                <option>Conference Room B</option>
+                <option>Lobby Reception</option>
+                <option>Security Desk</option>
+                <option>Local Client</option>
+              </select>
+              <button onclick="openModal('upload-modal')" class="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-full shimmer-btn">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Asset
+              </button>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="tbl" id="asset-table">
+              <thead>
+                <tr>
+                  <th>Asset</th><th>Name</th><th>Zone</th><th>Confidence</th><th>Tags</th><th>Last Seen</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="asset-tbody"></tbody>
+            </table>
+          </div>
+          <div class="px-6 py-4 border-t border-white/5 flex items-center justify-between">
+            <span class="text-xs font-mono text-slate-500" id="asset-count">Showing 4 assets</span>
+            <div class="flex items-center gap-2">
+              <button class="glass rounded-lg px-3 py-1.5 text-xs text-slate-400 hover:text-white transition">Prev</button>
+              <button class="glass rounded-lg px-3 py-1.5 text-xs bg-acid-500/20 text-acid-400 border border-acid-500/30">1</button>
+              <button class="glass rounded-lg px-3 py-1.5 text-xs text-slate-400 hover:text-white transition">Next</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== LIVE SCANNER ===================== -->
+      <div id="sec-scan" class="section">
+        <div class="grid lg:grid-cols-5 gap-6">
+          <div class="lg:col-span-3 glass rounded-2xl border border-white/5 overflow-hidden">
+            <div class="relative bg-black aspect-video overflow-hidden">
+              <img src="https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=1200" class="w-full h-full object-cover opacity-70" id="scan-feed">
+              <!-- Scanline -->
+              <div class="scanline"></div>
+              <!-- Corner brackets -->
+              <div class="absolute inset-6 pointer-events-none">
+                <div class="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-acid-400"></div>
+                <div class="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-acid-400"></div>
+                <div class="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-acid-400"></div>
+                <div class="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-acid-400"></div>
+              </div>
+              <!-- Detection box -->
+              <div id="detect-box" class="hidden absolute border-2 border-acid-400 rounded-lg bg-acid-400/5" style="top:30%;left:30%;width:200px;height:140px;">
+                <div class="absolute -top-6 left-0 glass text-[10px] font-mono font-bold px-2 py-1 rounded text-acid-400 border border-acid-400/30 flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 bg-acid-400 rounded-full"></span> 98.4% MATCH
+                </div>
+              </div>
+              <!-- HUD overlay -->
+              <div class="absolute top-4 left-4 space-y-1.5">
+                <div class="glass px-2.5 py-1 rounded-lg text-[10px] font-mono text-acid-400 border border-acid-400/20">RES: 1920×1080</div>
+                <div class="glass px-2.5 py-1 rounded-lg text-[10px] font-mono text-emerald-400 border border-emerald-400/20">FPS: 30</div>
+                <div id="scan-status" class="glass px-2.5 py-1 rounded-lg text-[10px] font-mono text-slate-400 border border-white/10">IDLE</div>
+              </div>
+              <!-- Controls -->
+              <div class="absolute bottom-5 left-1/2 -translate-x-1/2 glass border border-white/10 flex gap-2 p-1.5 rounded-full">
+                <button onclick="startLiveScan()" class="shimmer-btn px-5 py-2 rounded-full text-xs font-bold flex items-center gap-1.5">
+                  <i data-lucide="play" class="w-3.5 h-3.5"></i> Start
+                </button>
+                <button onclick="captureFrame()" class="glass border border-white/10 text-white px-5 py-2 rounded-full text-xs font-semibold hover:bg-white/10 transition flex items-center gap-1.5">
+                  <i data-lucide="camera" class="w-3.5 h-3.5"></i> Capture
+                </button>
+                <button onclick="stopScan()" class="glass border border-red-500/30 text-red-400 px-5 py-2 rounded-full text-xs font-semibold hover:bg-red-500/10 transition flex items-center gap-1.5">
+                  <i data-lucide="square" class="w-3.5 h-3.5"></i> Stop
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="lg:col-span-2 flex flex-col gap-4">
+            <!-- Scan settings -->
+            <div class="glass rounded-2xl border border-white/5 p-5">
+              <h3 class="font-syne font-semibold text-white text-sm mb-4">Scan Configuration</h3>
+              <div class="space-y-4">
+                <div>
+                  <label class="text-[10px] font-mono uppercase text-slate-500 block mb-1.5">Detection Model</label>
+                  <select class="inp text-sm">
+                    <option>SmartTrace Vision v3</option>
+                    <option>CLIP-ViT L/14</option>
+                    <option>ResNet-50 + FAISS</option>
+                    <option>Custom Model</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="text-[10px] font-mono uppercase text-slate-500 block mb-1.5">Confidence Threshold</label>
+                  <div class="flex items-center gap-3">
+                    <input type="range" min="50" max="100" value="85" id="scan-conf" oninput="document.getElementById('scan-conf-val').textContent=this.value+'%'">
+                    <span id="scan-conf-val" class="font-mono text-[11px] text-acid-400 w-10">85%</span>
+                  </div>
+                </div>
+                <div>
+                  <label class="text-[10px] font-mono uppercase text-slate-500 block mb-1.5">Target Zone</label>
+                  <select class="inp text-sm">
+                    <option>All Zones</option>
+                    <option>Studio Floor 1</option>
+                    <option>Conference Room B</option>
+                    <option>Lobby Reception</option>
+                  </select>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs text-slate-400">Auto-capture on match</span>
+                  <div class="toggle-track on" onclick="this.classList.toggle('on')"><div class="toggle-thumb"></div></div>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs text-slate-400">Send webhook on detect</span>
+                  <div class="toggle-track" onclick="this.classList.toggle('on')"><div class="toggle-thumb"></div></div>
+                </div>
+              </div>
+            </div>
+            <!-- Detection log -->
+            <div class="glass rounded-2xl border border-white/5 overflow-hidden flex-1">
+              <div class="px-4 py-3 border-b border-white/5 flex justify-between items-center">
+                <span class="text-xs font-syne font-semibold text-white">Detection Log</span>
+                <button onclick="clearScanLog()" class="text-[10px] font-mono text-slate-500 hover:text-red-400 transition">CLEAR</button>
+              </div>
+              <div id="scan-log" class="p-4 font-mono text-[11px] space-y-2 overflow-y-auto max-h-48 text-slate-400">
+                <div><span class="text-acid-400">[12:04:01]</span> INIT — Scanner ready</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== ANALYTICS ===================== -->
+      <div id="sec-analytics" class="section">
+        <div class="grid lg:grid-cols-2 gap-6">
+          <!-- Scan activity chart -->
+          <div class="glass rounded-2xl border border-white/5 p-6">
+            <h3 class="font-syne font-semibold text-white mb-6">Scan Activity (7 Days)</h3>
+            <div class="flex items-end gap-2 h-32" id="bar-chart">
+              <!-- Rendered by JS -->
+            </div>
+            <div class="flex justify-between mt-2 text-[10px] font-mono text-slate-600" id="bar-labels"></div>
+          </div>
+          <!-- Confidence distribution -->
+          <div class="glass rounded-2xl border border-white/5 p-6">
+            <h3 class="font-syne font-semibold text-white mb-6">Confidence Distribution</h3>
+            <div class="space-y-3">
+              <div class="flex items-center gap-3">
+                <span class="text-xs text-slate-400 w-16">90–100%</span>
+                <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden"><div class="conf-bar h-full" style="width:65%"></div></div>
+                <span class="text-[11px] font-mono text-acid-400 w-8">65%</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="text-xs text-slate-400 w-16">80–90%</span>
+                <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden"><div class="conf-bar h-full" style="width:25%;background:linear-gradient(90deg,#fbbf24,#f59e0b)"></div></div>
+                <span class="text-[11px] font-mono text-amber-400 w-8">25%</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="text-xs text-slate-400 w-16">70–80%</span>
+                <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden"><div class="conf-bar h-full" style="width:8%;background:linear-gradient(90deg,#f97316,#ef4444)"></div></div>
+                <span class="text-[11px] font-mono text-orange-400 w-8">8%</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="text-xs text-slate-400 w-16">&lt;70%</span>
+                <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden"><div class="conf-bar h-full" style="width:2%;background:linear-gradient(90deg,#ef4444,#dc2626)"></div></div>
+                <span class="text-[11px] font-mono text-red-400 w-8">2%</span>
+              </div>
+            </div>
+          </div>
+          <!-- Zone heatmap -->
+          <div class="glass rounded-2xl border border-white/5 p-6">
+            <h3 class="font-syne font-semibold text-white mb-6">Zone Activity Heatmap</h3>
+            <div class="grid grid-cols-4 gap-2" id="heatmap-grid"></div>
+          </div>
+          <!-- Top Assets -->
+          <div class="glass rounded-2xl border border-white/5 p-6">
+            <h3 class="font-syne font-semibold text-white mb-6">Top Identified Assets</h3>
+            <div class="space-y-3" id="top-assets-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== ALERTS ===================== -->
+      <div id="sec-alerts" class="section">
+        <div class="space-y-4">
+          <div class="flex justify-between items-center">
+            <h3 class="font-syne font-semibold text-white">Active Alerts</h3>
+            <button onclick="showToast('All alerts cleared')" class="text-xs font-mono text-slate-500 hover:text-red-400 transition flex items-center gap-1">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Clear All
+            </button>
+          </div>
+          <div id="alerts-list" class="space-y-3">
+            <div class="alert-bar glass rounded-2xl p-4 flex items-start gap-4 border border-red-500/10">
+              <div class="w-10 h-10 rounded-xl bg-red-500/15 flex items-center justify-center shrink-0"><i data-lucide="triangle-alert" class="w-5 h-5 text-red-400"></i></div>
+              <div class="flex-1">
+                <div class="flex justify-between items-start"><p class="text-sm font-semibold text-white mb-1">Unknown Asset Detected — Lobby</p><span class="text-[10px] font-mono text-slate-500">2 min ago</span></div>
+                <p class="text-xs text-slate-400">Object with no matching vector found near Sensor Array 3. Confidence below threshold.</p>
+                <div class="flex gap-2 mt-3"><button class="text-[10px] font-mono text-red-400 border border-red-500/20 px-3 py-1 rounded-lg hover:bg-red-500/10 transition">Investigate</button><button onclick="dismissAlert(this)" class="text-[10px] font-mono text-slate-500 px-3 py-1 rounded-lg hover:text-white transition">Dismiss</button></div>
+              </div>
+            </div>
+            <div class="alert-bar warn glass rounded-2xl p-4 flex items-start gap-4 border border-amber-500/10">
+              <div class="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center shrink-0"><i data-lucide="clock" class="w-5 h-5 text-amber-400"></i></div>
+              <div class="flex-1">
+                <div class="flex justify-between items-start"><p class="text-sm font-semibold text-white mb-1">Stale Asset — AirPods Max</p><span class="text-[10px] font-mono text-slate-500">5 hrs ago</span></div>
+                <p class="text-xs text-slate-400">Asset not scanned in over 4 hours. Last location: Lobby Reception.</p>
+                <div class="flex gap-2 mt-3"><button class="text-[10px] font-mono text-amber-400 border border-amber-500/20 px-3 py-1 rounded-lg hover:bg-amber-500/10 transition">Locate</button><button onclick="dismissAlert(this)" class="text-[10px] font-mono text-slate-500 px-3 py-1 rounded-lg hover:text-white transition">Dismiss</button></div>
+              </div>
+            </div>
+            <div class="alert-bar info glass rounded-2xl p-4 flex items-start gap-4 border border-acid-500/10">
+              <div class="w-10 h-10 rounded-xl bg-acid-500/15 flex items-center justify-center shrink-0"><i data-lucide="info" class="w-5 h-5 text-acid-400"></i></div>
+              <div class="flex-1">
+                <div class="flex justify-between items-start"><p class="text-sm font-semibold text-white mb-1">Vector DB Sync Required</p><span class="text-[10px] font-mono text-slate-500">1 day ago</span></div>
+                <p class="text-xs text-slate-400">Remote vector index is 24+ hours out of date. Recommend manual sync.</p>
+                <div class="flex gap-2 mt-3"><button onclick="doAction('sync')" class="text-[10px] font-mono text-acid-400 border border-acid-500/20 px-3 py-1 rounded-lg hover:bg-acid-500/10 transition">Sync Now</button><button onclick="dismissAlert(this)" class="text-[10px] font-mono text-slate-500 px-3 py-1 rounded-lg hover:text-white transition">Dismiss</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== ZONE MAP ===================== -->
+      <div id="sec-zones" class="section">
+        <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+          <div class="px-6 py-4 border-b border-white/5 flex justify-between items-center">
+            <h3 class="font-syne font-semibold text-white">Zone Map</h3>
+            <button onclick="openModal('zone-modal')" class="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-full shimmer-btn">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Zone
+            </button>
+          </div>
+          <div class="p-6">
+            <div class="relative w-full bg-black/40 rounded-xl border border-white/5 overflow-hidden" style="height:460px">
+              <!-- Floor plan placeholder -->
+              <div class="absolute inset-0 flex items-center justify-center opacity-10">
+                <i data-lucide="map" class="w-24 h-24 text-white"></i>
+              </div>
+              <!-- Zone markers -->
+              <div class="zone-marker absolute" style="top:15%;left:20%;"><div class="relative"><div class="absolute inset-0 rounded-full bg-acid-400/30 animate-pulse-ring"></div><div class="w-5 h-5 bg-acid-400 rounded-full border-2 border-acid-400 shadow-lg shadow-acid-400/50 cursor-pointer" onclick="showToast('Zone: Studio Floor 1 — 2 assets')"></div></div><span class="absolute top-6 left-1/2 -translate-x-1/2 text-[9px] font-mono text-acid-400 whitespace-nowrap">Studio 1</span></div>
+              <div class="zone-marker absolute" style="top:40%;left:55%;"><div class="relative"><div class="w-5 h-5 bg-amber-400 rounded-full border-2 border-amber-400 shadow-lg shadow-amber-400/50 cursor-pointer" onclick="showToast('Zone: Conference B — 1 asset')"></div></div><span class="absolute top-6 left-1/2 -translate-x-1/2 text-[9px] font-mono text-amber-400 whitespace-nowrap">Conf. B</span></div>
+              <div class="zone-marker absolute" style="top:65%;left:35%;"><div class="relative"><div class="w-5 h-5 bg-red-400 rounded-full border-2 border-red-400 shadow-lg shadow-red-400/50 cursor-pointer" onclick="showToast('ALERT: Unrecognized asset near Lobby!')"></div></div><span class="absolute top-6 left-1/2 -translate-x-1/2 text-[9px] font-mono text-red-400 whitespace-nowrap">Lobby</span></div>
+              <div class="zone-marker absolute" style="top:25%;left:72%;"><div class="relative"><div class="w-5 h-5 bg-slate-400 rounded-full border-2 border-slate-400 shadow-lg cursor-pointer" onclick="showToast('Zone: Security Desk — 1 asset')"></div></div><span class="absolute top-6 left-1/2 -translate-x-1/2 text-[9px] font-mono text-slate-400 whitespace-nowrap">Security</span></div>
+              <!-- Legend -->
+              <div class="absolute bottom-4 left-4 glass rounded-xl p-3 border border-white/10 text-[10px] font-mono space-y-1.5">
+                <div class="flex items-center gap-2"><div class="w-2.5 h-2.5 bg-acid-400 rounded-full"></div> Active Zone</div>
+                <div class="flex items-center gap-2"><div class="w-2.5 h-2.5 bg-amber-400 rounded-full"></div> Warning Zone</div>
+                <div class="flex items-center gap-2"><div class="w-2.5 h-2.5 bg-red-400 rounded-full"></div> Alert Zone</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== API CONSOLE ===================== -->
+      <div id="sec-api" class="section">
+        <div class="grid lg:grid-cols-2 gap-6">
+          <div class="glass rounded-2xl border border-white/5 p-6">
+            <h3 class="font-syne font-semibold text-white mb-4">API Tester</h3>
+            <div class="space-y-4">
+              <div>
+                <label class="text-[10px] font-mono uppercase text-slate-500 block mb-1.5">Method</label>
+                <div class="flex gap-2">
+                  <button class="api-method-btn active text-[11px] font-mono px-3 py-1.5 rounded-lg border border-acid-500/30 bg-acid-500/10 text-acid-400" data-method="GET">GET</button>
+                  <button class="api-method-btn text-[11px] font-mono px-3 py-1.5 rounded-lg border border-white/10 text-slate-400 hover:text-white transition" data-method="POST">POST</button>
+                  <button class="api-method-btn text-[11px] font-mono px-3 py-1.5 rounded-lg border border-white/10 text-slate-400 hover:text-white transition" data-method="DELETE">DELETE</button>
+                </div>
+              </div>
+              <div>
+                <label class="text-[10px] font-mono uppercase text-slate-500 block mb-1.5">Endpoint</label>
+                <input type="text" id="api-endpoint" class="inp font-mono text-sm" value="/api/v1/assets" placeholder="/api/v1/...">
+              </div>
+              <div>
+                <label class="text-[10px] font-mono uppercase text-slate-500 block mb-1.5">Request Body (JSON)</label>
+                <textarea id="api-body" class="inp font-mono text-xs h-24 resize-none" placeholder='{"key": "value"}'></textarea>
+              </div>
+              <button onclick="sendApiRequest()" class="w-full shimmer-btn py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2">
+                <i data-lucide="send" class="w-4 h-4"></i> Send Request
+              </button>
+            </div>
+          </div>
+          <div class="glass rounded-2xl border border-white/5 overflow-hidden flex flex-col">
+            <div class="px-5 py-3 border-b border-white/5 flex items-center justify-between">
+              <span class="text-xs font-mono text-slate-400">Response</span>
+              <span id="api-status" class="text-[10px] font-mono text-slate-600">READY</span>
+            </div>
+            <pre id="api-response" class="p-5 font-mono text-xs text-acid-400 overflow-y-auto flex-1 whitespace-pre-wrap">// Response will appear here</pre>
+          </div>
+        </div>
+        <!-- Endpoints Reference -->
+        <div class="glass rounded-2xl border border-white/5 p-6 mt-6">
+          <h3 class="font-syne font-semibold text-white mb-4">Endpoint Reference</h3>
+          <div class="overflow-x-auto">
+            <table class="tbl">
+              <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th><th>Auth</th></tr></thead>
+              <tbody>
+                <tr><td><span class="tag" style="color:#34d399;border-color:rgba(52,211,153,0.3)">GET</span></td><td class="font-mono text-xs text-slate-300">/api/v1/assets</td><td class="text-xs text-slate-400">List all assets</td><td><span class="tag">API Key</span></td></tr>
+                <tr><td><span class="tag" style="color:#60a5fa;border-color:rgba(96,165,250,0.3)">POST</span></td><td class="font-mono text-xs text-slate-300">/api/v1/assets</td><td class="text-xs text-slate-400">Add new asset</td><td><span class="tag">API Key</span></td></tr>
+                <tr><td><span class="tag" style="color:#60a5fa;border-color:rgba(96,165,250,0.3)">POST</span></td><td class="font-mono text-xs text-slate-300">/api/v1/detect</td><td class="text-xs text-slate-400">Detect from image</td><td><span class="tag">API Key</span></td></tr>
+                <tr><td><span class="tag" style="color:#34d399;border-color:rgba(52,211,153,0.3)">GET</span></td><td class="font-mono text-xs text-slate-300">/api/v1/zones</td><td class="text-xs text-slate-400">List all zones</td><td><span class="tag">API Key</span></td></tr>
+                <tr><td><span class="tag" style="color:#f87171;border-color:rgba(248,113,113,0.3)">DELETE</span></td><td class="font-mono text-xs text-slate-300">/api/v1/assets/:id</td><td class="text-xs text-slate-400">Delete asset</td><td><span class="tag">API Key</span></td></tr>
+                <tr><td><span class="tag" style="color:#34d399;border-color:rgba(52,211,153,0.3)">GET</span></td><td class="font-mono text-xs text-slate-300">/api/v1/logs</td><td class="text-xs text-slate-400">Get system logs</td><td><span class="tag">API Key</span></td></tr>
+                <tr><td><span class="tag" style="color:#60a5fa;border-color:rgba(96,165,250,0.3)">POST</span></td><td class="font-mono text-xs text-slate-300">/api/v1/webhooks</td><td class="text-xs text-slate-400">Register webhook</td><td><span class="tag">API Key</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== SETTINGS ===================== -->
+      <div id="sec-settings" class="section">
+        <div class="grid lg:grid-cols-2 gap-6">
+          <!-- API Keys -->
+          <div class="glass rounded-2xl border border-white/5 p-6">
+            <h3 class="font-syne font-semibold text-white mb-5">API Configuration</h3>
+            <div class="space-y-4">
+              <div>
+                <label class="text-[10px] font-mono uppercase text-slate-500 block mb-1.5">API Key</label>
+                <div class="flex items-center gap-2">
+                  <input type="password" id="api-key-inp" class="inp font-mono text-sm flex-1" value="sk_live_alpha_0987654321">
+                  <button onclick="toggleApiKey()" class="glass p-2.5 rounded-xl border border-white/10 text-slate-400 hover:text-acid-400 transition"><i data-lucide="eye" class="w-4 h-4" id="eye-icon"></i></button>
+                  <button onclick="copyApiKey()" class="glass p-2.5 rounded-xl border border-white/10 text-slate-400 hover:text-acid-400 transition"><i data-lucide="copy" class="w-4 h-4"></i></button>
+                </div>
+              </div>
+              <div>
+                <label class="text-[10px] font-mono uppercase text-slate-500 block mb-1.5">Backend URL</label>
+                <input type="text" id="backend-url" class="inp font-mono text-sm" value="http://localhost:5000" placeholder="http://localhost:5000">
+              </div>
+              <div>
+                <label class="text-[10px] font-mono uppercase text-slate-500 block mb-1.5">Webhook URL</label>
+                <input type="text" class="inp font-mono text-sm" placeholder="https://api.yourdomain.com/hooks">
+              </div>
+              <button onclick="saveSettings()" class="w-full shimmer-btn py-3 rounded-xl text-sm font-bold">Save Configuration</button>
+            </div>
+          </div>
+          <!-- Preferences -->
+          <div class="glass rounded-2xl border border-white/5 p-6">
+            <h3 class="font-syne font-semibold text-white mb-5">Preferences</h3>
+            <div class="space-y-4">
+              <div class="flex items-center justify-between py-2 border-b border-white/5">
+                <div><p class="text-sm text-white">Auto-sync Vector DB</p><p class="text-xs text-slate-500 mt-0.5">Sync every 30 minutes</p></div>
+                <div class="toggle-track on" onclick="this.classList.toggle('on')"><div class="toggle-thumb"></div></div>
+              </div>
+              <div class="flex items-center justify-between py-2 border-b border-white/5">
+                <div><p class="text-sm text-white">Email Alerts</p><p class="text-xs text-slate-500 mt-0.5">On critical detections</p></div>
+                <div class="toggle-track on" onclick="this.classList.toggle('on')"><div class="toggle-thumb"></div></div>
+              </div>
+              <div class="flex items-center justify-between py-2 border-b border-white/5">
+                <div><p class="text-sm text-white">Sound Alerts</p><p class="text-xs text-slate-500 mt-0.5">Beep on detection</p></div>
+                <div class="toggle-track" onclick="this.classList.toggle('on')"><div class="toggle-thumb"></div></div>
+              </div>
+              <div class="flex items-center justify-between py-2 border-b border-white/5">
+                <div><p class="text-sm text-white">Dark Mode</p><p class="text-xs text-slate-500 mt-0.5">Always on</p></div>
+                <div class="toggle-track on" onclick="this.classList.toggle('on')"><div class="toggle-thumb"></div></div>
+              </div>
+              <div>
+                <label class="text-[10px] font-mono uppercase text-slate-500 block mb-1.5">Default Confidence</label>
+                <div class="flex items-center gap-3">
+                  <input type="range" min="50" max="100" value="80" oninput="this.nextElementSibling.textContent=this.value+'%'">
+                  <span class="font-mono text-[11px] text-acid-400 w-10">80%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Enterprise status -->
+          <div class="glass rounded-2xl border border-acid-500/20 bg-gradient-to-br from-acid-500/5 to-transparent p-6 flex items-center gap-5">
+            <div class="w-14 h-14 rounded-2xl bg-acid-500/15 border border-acid-500/25 flex items-center justify-center shrink-0">
+              <i data-lucide="shield-check" class="w-7 h-7 text-acid-400"></i>
+            </div>
+            <div>
+              <p class="font-syne font-bold text-white text-lg">Enterprise Tier Active</p>
+              <p class="text-xs text-slate-400 mt-1">Unlimited vector indexing · Priority GPU · SAML SSO · 99.9% SLA</p>
+              <div class="flex gap-3 mt-3">
+                <span class="tag">SAML</span><span class="tag">UNLIMITED</span><span class="tag">PRIORITY GPU</span>
+              </div>
+            </div>
+          </div>
+          <!-- Danger zone -->
+          <div class="glass rounded-2xl border border-red-500/20 p-6">
+            <h3 class="font-syne font-semibold text-red-400 mb-4">Danger Zone</h3>
+            <div class="space-y-3">
+              <button onclick="confirmDanger('Purge all logs?')" class="w-full glass border border-red-500/20 text-red-400 py-3 rounded-xl text-sm font-semibold hover:bg-red-500/10 transition flex items-center justify-center gap-2">
+                <i data-lucide="trash-2" class="w-4 h-4"></i> Purge All Logs
+              </button>
+              <button onclick="confirmDanger('Reset vector database?')" class="w-full glass border border-red-500/20 text-red-400 py-3 rounded-xl text-sm font-semibold hover:bg-red-500/10 transition flex items-center justify-center gap-2">
+                <i data-lucide="database-zap" class="w-4 h-4"></i> Reset Vector DB
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== LOGS ===================== -->
+      <div id="sec-logs" class="section">
+        <div class="glass rounded-2xl border border-white/5 overflow-hidden">
+          <div class="px-6 py-4 border-b border-white/5 flex justify-between items-center">
+            <h3 class="font-syne font-semibold text-white">System Logs</h3>
+            <div class="flex gap-3">
+              <select class="inp text-xs w-32" onchange="filterLogs(this.value)">
+                <option value="">All Types</option>
+                <option>INIT</option><option>DETECT</option><option>SYNC</option><option>ERROR</option><option>WEBHOOK</option>
+              </select>
+              <button onclick="clearLogs()" class="text-[10px] font-mono text-slate-500 hover:text-red-400 transition">CLEAR</button>
+            </div>
+          </div>
+          <div id="full-log" class="p-6 font-mono text-[12px] space-y-2 overflow-y-auto max-h-[600px]"></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ===================== MODALS ===================== -->
+
+<!-- Upload Modal -->
+<div id="upload-modal" class="modal-wrap fixed inset-0 bg-black/70 backdrop-blur-xl z-50 flex items-center justify-center p-6">
+  <div class="modal-inner w-full max-w-lg glass rounded-3xl border border-white/10 overflow-hidden">
+    <div class="px-8 py-6 border-b border-white/5 flex justify-between items-center">
+      <h2 class="font-syne font-bold text-white text-lg">Upload Assets</h2>
+      <button onclick="closeModal('upload-modal')" class="text-slate-400 hover:text-white p-2 rounded-full hover:bg-white/5 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <div class="p-8">
+      <div id="dropzone-el" class="border-2 border-dashed border-white/15 hover:border-acid-400/50 rounded-2xl p-12 text-center cursor-pointer transition-all group" onclick="document.getElementById('file-input').click()">
+        <input type="file" id="file-input" class="hidden" accept="image/*" multiple onchange="handleUpload(event)">
+        <div class="w-16 h-16 rounded-2xl glass flex items-center justify-center mx-auto mb-4 border border-white/10 group-hover:border-acid-400/30 transition">
+          <i data-lucide="image-plus" class="w-8 h-8 text-acid-400"></i>
+        </div>
+        <p class="text-sm font-semibold text-white mb-1">Drag & drop or click to upload</p>
+        <p class="text-xs text-slate-500">PNG, JPG, WEBP — batch supported up to 50 files</p>
+      </div>
+      <div id="upload-progress" class="hidden mt-4 space-y-2">
+        <div class="flex justify-between text-xs"><span class="font-mono text-slate-400" id="up-prog-text">Processing 0/0</span><span class="font-mono text-acid-400" id="up-prog-pct">0%</span></div>
+        <div class="h-1.5 bg-white/10 rounded-full overflow-hidden"><div id="up-prog-bar" class="conf-bar h-full w-0 transition-all duration-300"></div></div>
+      </div>
+      <div class="mt-6 grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-[10px] font-mono uppercase text-slate-500 block mb-1.5">Zone Assignment</label>
+          <select class="inp text-sm"><option>Auto-detect</option><option>Studio Floor 1</option><option>Conference Room B</option><option>Lobby</option></select>
+        </div>
+        <div>
+          <label class="text-[10px] font-mono uppercase text-slate-500 block mb-1.5">Tags</label>
+          <input class="inp text-sm" placeholder="camera, tech, ...">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Camera Modal -->
+<div id="cam-modal" class="modal-wrap fixed inset-0 bg-black/80 backdrop-blur-xl z-50 flex items-center justify-center p-6">
+  <div class="modal-inner w-full max-w-3xl glass rounded-3xl border border-white/10 overflow-hidden p-4">
+    <div class="relative bg-black rounded-2xl overflow-hidden aspect-video">
+      <img src="https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=1200" class="w-full h-full object-cover opacity-80">
+      <div class="scanline"></div>
+      <div class="absolute inset-5 pointer-events-none">
+        <div class="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-acid-400"></div>
+        <div class="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-acid-400"></div>
+        <div class="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-acid-400"></div>
+        <div class="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-acid-400"></div>
+      </div>
+      <div id="cam-detect-box" class="hidden absolute border-2 border-acid-400 rounded-xl bg-acid-400/5" style="top:30%;left:30%;width:220px;height:150px">
+        <div class="absolute -top-6 left-2 glass text-[10px] font-mono px-2 py-1 rounded text-acid-400 border border-acid-400/30 flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 bg-acid-400 rounded-full"></span> 98.4% MATCH
+        </div>
+      </div>
+      <div class="absolute bottom-5 left-1/2 -translate-x-1/2 glass border border-white/10 flex gap-2 p-1.5 rounded-full">
+        <button onclick="captureModalFrame()" class="shimmer-btn px-6 py-2.5 rounded-full text-xs font-bold flex items-center gap-2"><i data-lucide="scan-face" class="w-4 h-4"></i> Process Frame</button>
+        <button onclick="closeModal('cam-modal')" class="glass border border-white/10 text-white px-6 py-2.5 rounded-full text-xs font-semibold hover:bg-white/10 transition">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Search Modal -->
+<div id="search-modal" class="modal-wrap fixed inset-0 bg-black/60 backdrop-blur-lg z-50 flex items-start justify-center pt-[15vh] p-6">
+  <div class="modal-inner w-full max-w-2xl glass rounded-2xl border border-white/10 overflow-hidden">
+    <div class="flex items-center gap-3 px-5 py-4 border-b border-white/5">
+      <i data-lucide="search" class="w-5 h-5 text-slate-500"></i>
+      <input type="text" id="modal-search-inp" placeholder="Search assets, zones, IDs..." class="flex-1 bg-transparent text-white text-sm outline-none placeholder-slate-600" oninput="liveSearch(this.value)" autofocus>
+      <span class="font-mono text-[10px] text-slate-600 bg-white/5 px-2 py-1 rounded">ESC</span>
+    </div>
+    <div id="search-results" class="p-3 max-h-80 overflow-y-auto">
+      <p class="text-xs font-mono text-slate-600 px-3 py-2">Type to search...</p>
+    </div>
+  </div>
+</div>
+
+<!-- Webhook Modal -->
+<div id="webhook-modal" class="modal-wrap fixed inset-0 bg-black/70 backdrop-blur-xl z-50 flex items-center justify-center p-6">
+  <div class="modal-inner w-full max-w-lg glass rounded-3xl border border-white/10 overflow-hidden">
+    <div class="px-8 py-6 border-b border-white/5 flex justify-between items-center">
+      <h2 class="font-syne font-bold text-white text-lg">Webhook Configuration</h2>
+      <button onclick="closeModal('webhook-modal')" class="text-slate-400 hover:text-white p-2 rounded-full hover:bg-white/5"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <div class="p-8 space-y-4">
+      <div><label class="text-[10px] font-mono uppercase text-slate-500 block mb-1.5">Webhook URL</label><input class="inp font-mono text-sm" placeholder="https://api.example.com/hooks" id="wh-url"></div>
+      <div><label class="text-[10px] font-mono uppercase text-slate-500 block mb-1.5">Events</label>
+        <div class="grid grid-cols-2 gap-2">
+          <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer"><input type="checkbox" checked class="accent-acid-500"> asset.detected</label>
+          <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer"><input type="checkbox" class="accent-acid-500"> alert.triggered</label>
+          <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer"><input type="checkbox" checked class="accent-acid-500"> asset.added</label>
+          <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer"><input type="checkbox" class="accent-acid-500"> sync.complete</label>
+        </div>
+      </div>
+      <div><label class="text-[10px] font-mono uppercase text-slate-500 block mb-1.5">Secret Key</label><input class="inp font-mono text-sm" placeholder="whsec_..."></div>
+      <button onclick="saveWebhook()" class="w-full shimmer-btn py-3 rounded-xl text-sm font-bold">Save Webhook</button>
+    </div>
+  </div>
+</div>
+
+<!-- Zone Add Modal -->
+<div id="zone-modal" class="modal-wrap fixed inset-0 bg-black/70 backdrop-blur-xl z-50 flex items-center justify-center p-6">
+  <div class="modal-inner w-full max-w-md glass rounded-3xl border border-white/10 overflow-hidden">
+    <div class="px-8 py-6 border-b border-white/5 flex justify-between items-center">
+      <h2 class="font-syne font-bold text-white text-lg">Add Zone</h2>
+      <button onclick="closeModal('zone-modal')" class="text-slate-400 hover:text-white p-2 rounded-full hover:bg-white/5"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <div class="p-8 space-y-4">
+      <div><label class="text-[10px] font-mono uppercase text-slate-500 block mb-1.5">Zone Name</label><input class="inp" placeholder="e.g. Server Room A"></div>
+      <div><label class="text-[10px] font-mono uppercase text-slate-500 block mb-1.5">Zone Type</label>
+        <select class="inp"><option>Standard</option><option>Restricted</option><option>Public</option><option>Secure</option></select>
+      </div>
+      <div><label class="text-[10px] font-mono uppercase text-slate-500 block mb-1.5">Alert on Unknown Asset</label>
+        <div class="toggle-track on" onclick="this.classList.toggle('on')"><div class="toggle-thumb"></div></div>
+      </div>
+      <button onclick="closeModal('zone-modal');showToast('Zone added successfully')" class="w-full shimmer-btn py-3 rounded-xl text-sm font-bold">Add Zone</button>
+    </div>
+  </div>
+</div>
+
+<!-- Notification Panel -->
+<div id="notif-modal" class="modal-wrap fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex justify-end">
+  <div class="modal-inner w-full max-w-sm h-full glass border-l border-white/10 flex flex-col" style="transform-origin:right">
+    <div class="px-6 py-5 border-b border-white/5 flex justify-between items-center">
+      <h2 class="font-syne font-bold text-white">Notifications</h2>
+      <button onclick="closeModal('notif-modal')" class="text-slate-400 hover:text-white p-1.5 rounded-full hover:bg-white/5"><i data-lucide="x" class="w-4 h-4"></i></button>
+    </div>
+    <div class="p-4 space-y-3 flex-1 overflow-y-auto">
+      <div class="glass rounded-xl p-4 border border-red-500/20"><div class="flex justify-between items-start mb-1"><span class="text-xs font-semibold text-red-400">Critical Alert</span><span class="text-[10px] font-mono text-slate-500">2m ago</span></div><p class="text-xs text-slate-400">Unknown asset near Lobby Sensor.</p></div>
+      <div class="glass rounded-xl p-4 border border-amber-500/20"><div class="flex justify-between items-start mb-1"><span class="text-xs font-semibold text-amber-400">Warning</span><span class="text-[10px] font-mono text-slate-500">5h ago</span></div><p class="text-xs text-slate-400">AirPods Max stale — not scanned in 4 hrs.</p></div>
+      <div class="glass rounded-xl p-4 border border-white/5"><div class="flex justify-between items-start mb-1"><span class="text-xs font-semibold text-acid-400">Info</span><span class="text-[10px] font-mono text-slate-500">1d ago</span></div><p class="text-xs text-slate-400">Vector DB sync recommended.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- Profile Modal -->
+<div id="profile-modal" class="modal-wrap fixed inset-0 bg-black/70 backdrop-blur-xl z-50 flex items-center justify-center p-6">
+  <div class="modal-inner w-full max-w-md glass rounded-3xl border border-white/10 overflow-hidden">
+    <div class="px-8 py-6 border-b border-white/5 flex justify-between items-center">
+      <h2 class="font-syne font-bold text-white text-lg">Profile</h2>
+      <button onclick="closeModal('profile-modal')" class="text-slate-400 hover:text-white p-2 rounded-full hover:bg-white/5"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <div class="p-8 space-y-4">
+      <div class="flex items-center gap-4 mb-4">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-acid-400 to-green-600 flex items-center justify-center text-2xl font-bold text-black font-mono">AD</div>
+        <div><p class="text-white font-syne font-bold text-lg">Admin User</p><p class="text-xs font-mono text-acid-400">Enterprise Tier</p></div>
+      </div>
+      <div><label class="text-[10px] font-mono uppercase text-slate-500 block mb-1.5">Display Name</label><input class="inp" value="Admin"></div>
+      <div><label class="text-[10px] font-mono uppercase text-slate-500 block mb-1.5">Email</label><input class="inp" value="admin@smarttrace.ai"></div>
+      <button onclick="closeModal('profile-modal');showToast('Profile saved')" class="w-full shimmer-btn py-3 rounded-xl text-sm font-bold">Save Profile</button>
+    </div>
+  </div>
+</div>
+
+<!-- Asset Detail Modal -->
+<div id="asset-detail-modal" class="modal-wrap fixed inset-0 bg-black/70 backdrop-blur-xl z-50 flex items-center justify-center p-6">
+  <div class="modal-inner w-full max-w-xl glass rounded-3xl border border-white/10 overflow-hidden">
+    <div class="px-8 py-6 border-b border-white/5 flex justify-between items-center">
+      <h2 class="font-syne font-bold text-white text-lg" id="detail-title">Asset Detail</h2>
+      <button onclick="closeModal('asset-detail-modal')" class="text-slate-400 hover:text-white p-2 rounded-full hover:bg-white/5"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <div class="p-8 flex gap-6">
+      <img id="detail-img" class="w-36 h-36 rounded-2xl object-cover border border-white/10 shrink-0" src="">
+      <div class="flex-1 space-y-3">
+        <div class="grid grid-cols-2 gap-3">
+          <div><p class="text-[10px] font-mono text-slate-500 uppercase">Confidence</p><p class="text-xl font-syne font-bold text-acid-400" id="detail-conf">—</p></div>
+          <div><p class="text-[10px] font-mono text-slate-500 uppercase">Zone</p><p class="text-sm font-semibold text-white" id="detail-zone">—</p></div>
+          <div><p class="text-[10px] font-mono text-slate-500 uppercase">Asset ID</p><p class="text-xs font-mono text-slate-300" id="detail-id">—</p></div>
+          <div><p class="text-[10px] font-mono text-slate-500 uppercase">Last Seen</p><p class="text-xs text-slate-300" id="detail-time">—</p></div>
+        </div>
+        <div><p class="text-[10px] font-mono text-slate-500 uppercase mb-2">Tags</p><div id="detail-tags" class="flex flex-wrap gap-1"></div></div>
+        <div class="flex gap-2 pt-2">
+          <button onclick="closeModal('asset-detail-modal')" class="flex-1 glass border border-red-500/20 text-red-400 py-2.5 rounded-xl text-xs font-semibold hover:bg-red-500/10 transition">Delete</button>
+          <button onclick="closeModal('asset-detail-modal');showToast('Location tracking started')" class="flex-1 shimmer-btn py-2.5 rounded-xl text-xs font-bold">Track Location</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+// ===== STATE =====
+const uuid = () => Math.random().toString(36).substring(2,10).toUpperCase();
+const sleep = ms => new Promise(r => setTimeout(r,ms));
+
+let appState = {
+  assets: [
+    { id: uuid(), name: "Leica Q2 Camera", conf: 0.98, loc: "Studio Floor 1", tags: "camera tech photography black", img: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=600&q=80", time: "12 mins ago" },
+    { id: uuid(), name: "Nomad Leather Folio", conf: 0.89, loc: "Conference Room B", tags: "leather accessory office brown", img: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600&q=80", time: "2 hrs ago" },
+    { id: uuid(), name: "AirPods Max", conf: 0.94, loc: "Lobby Reception", tags: "audio headphones apple silver", img: "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=600&q=80", time: "5 hrs ago" },
+    { id: uuid(), name: "Titanium Keys", conf: 0.81, loc: "Security Desk", tags: "keys metal silver", img: "https://images.unsplash.com/photo-1582139329536-e7284fece509?w=600&q=80", time: "1 day ago" }
+  ],
+  logs: [],
+  view: 'grid',
+  threshold: 0.80,
+  backendUrl: 'http://localhost:5000'
+};
+
+// ===== LOGGING =====
+function log(type, msg, color='acid') {
+  const t = new Date().toLocaleTimeString([],{hour12:false});
+  appState.logs.push({t,type,msg,color});
+  renderTerminal();
+  renderFullLog();
+}
+
+function renderTerminal() {
+  const el = document.getElementById('terminal-out');
+  if(!el) return;
+  el.innerHTML = appState.logs.slice(-20).map(l =>
+    `<div><span class="opacity-30">[${l.t}]</span> <span class="text-${l.color}-400 font-bold">${l.type}</span><span class="opacity-30"> :: </span><span class="text-slate-300">${l.msg}</span></div>`
+  ).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+function renderFullLog() {
+  const el = document.getElementById('full-log');
+  if(!el) return;
+  el.innerHTML = appState.logs.slice().reverse().map(l =>
+    `<div class="mb-1"><span class="opacity-30">[${l.t}]</span> <span class="text-${l.color}-400 font-bold">${l.type}</span><span class="opacity-30 mr-2"> :: </span><span class="text-slate-300">${l.msg}</span></div>`
+  ).join('');
+}
+
+// ===== NAV =====
+function goTo(sec) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-'+sec).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(b => {
+    if(b.getAttribute('onclick')?.includes(sec)) b.classList.add('active');
+  });
+  if(sec==='analytics') renderAnalytics();
+  if(sec==='assets') renderAssetTable();
+  if(sec==='logs') renderFullLog();
+}
+
+// ===== ASSET RENDER =====
+function renderAssets() {
+  const el = document.getElementById('asset-grid');
+  const conf = appState.threshold;
+  const data = appState.assets.filter(a => a.conf >= conf);
+  document.getElementById('kpi-assets').textContent = appState.assets.length;
+  document.getElementById('vec-counter').textContent = appState.assets.length;
+
+  if(!data.length) {
+    el.innerHTML = `<div class="flex flex-col items-center justify-center py-16 opacity-30 font-mono text-sm text-white gap-3"><i data-lucide="search-x" class="w-10 h-10"></i>No vectors above threshold</div>`;
+    lucide.createIcons(); return;
+  }
+  if(appState.view==='grid') {
+    el.innerHTML = `<div class="grid grid-cols-2 xl:grid-cols-4 gap-4">${data.map(a => assetCard(a)).join('')}</div>`;
+  } else {
+    el.innerHTML = `<div class="space-y-3">${data.map(a => assetRow(a)).join('')}</div>`;
+  }
+  lucide.createIcons();
+}
+
+function assetCard(a) {
+  return `<div class="glass card-glow glass-hover rounded-2xl p-2.5 border border-white/5 cursor-pointer group" onclick="showDetail('${a.id}')">
+    <div class="relative asset-img-wrap h-36 rounded-xl overflow-hidden mb-3">
+      <img src="${a.img}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+      <div class="absolute top-2 right-2 glass text-[10px] font-mono font-bold px-2 py-1 rounded-lg border border-white/10 text-white flex items-center gap-1">
+        <span class="w-1.5 h-1.5 rounded-full ${a.conf>0.9?'bg-acid-400':'bg-amber-400'}"></span>${(a.conf*100).toFixed(0)}%
+      </div>
+    </div>
+    <div class="px-1 pb-1">
+      <p class="font-syne font-semibold text-sm text-white truncate mb-1">${a.name}</p>
+      <p class="text-[10px] font-mono text-slate-500 flex items-center gap-1"><i data-lucide="map-pin" class="w-3 h-3"></i>${a.loc}</p>
+      <div class="mt-2 h-0.5 bg-white/5 rounded-full"><div class="conf-bar h-full" style="width:${(a.conf*100).toFixed(0)}%"></div></div>
+    </div>
+  </div>`;
+}
+
+function assetRow(a) {
+  return `<div class="glass card-glow glass-hover rounded-xl p-3 border border-white/5 flex items-center gap-4 cursor-pointer" onclick="showDetail('${a.id}')">
+    <img src="${a.img}" class="w-14 h-14 rounded-xl object-cover border border-white/10 shrink-0">
+    <div class="flex-1 min-w-0">
+      <p class="font-syne font-semibold text-sm text-white truncate">${a.name}</p>
+      <p class="text-[10px] font-mono text-slate-500 mt-0.5">${a.loc}</p>
+    </div>
+    <div class="text-right shrink-0">
+      <p class="font-mono text-sm font-bold text-acid-400">${(a.conf*100).toFixed(1)}%</p>
+      <p class="text-[10px] font-mono text-slate-600">${a.time}</p>
+    </div>
+  </div>`;
+}
+
+function renderAssetTable() {
+  const tbody = document.getElementById('asset-tbody');
+  const search = document.getElementById('asset-search')?.value.toLowerCase()||'';
+  const zone = document.getElementById('zone-filter')?.value||'';
+  const data = appState.assets.filter(a =>
+    (!search || a.name.toLowerCase().includes(search) || a.tags.includes(search)) &&
+    (!zone || a.loc === zone)
+  );
+  document.getElementById('asset-count').textContent = `Showing ${data.length} assets`;
+  tbody.innerHTML = data.map(a => `
+    <tr>
+      <td><img src="${a.img}" class="w-12 h-12 rounded-xl object-cover border border-white/10"></td>
+      <td class="font-semibold text-white text-sm">${a.name}</td>
+      <td class="font-mono text-xs text-slate-400">${a.loc}</td>
+      <td>
+        <div class="flex items-center gap-2">
+          <div class="w-16 h-1.5 bg-white/10 rounded-full overflow-hidden"><div class="conf-bar h-full" style="width:${(a.conf*100)}%"></div></div>
+          <span class="font-mono text-xs text-acid-400">${(a.conf*100).toFixed(0)}%</span>
+        </div>
+      </td>
+      <td>${a.tags.split(' ').slice(0,3).map(t=>`<span class="tag">${t}</span>`).join(' ')}</td>
+      <td class="font-mono text-xs text-slate-500">${a.time}</td>
+      <td>
+        <div class="flex gap-2">
+          <button onclick="showDetail('${a.id}')" class="glass p-2 rounded-lg text-slate-400 hover:text-acid-400 transition border border-white/5"><i data-lucide="eye" class="w-3.5 h-3.5"></i></button>
+          <button onclick="deleteAsset('${a.id}')" class="glass p-2 rounded-lg text-slate-400 hover:text-red-400 transition border border-white/5"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+  lucide.createIcons();
+}
+
+function filterAssets(v) { renderAssetTable(); }
+
+function setView(v) {
+  appState.view = v;
+  document.getElementById('vw-grid').className = `p-1.5 rounded ${v==='grid'?'text-acid-400':'text-slate-500 hover:text-white'}`;
+  document.getElementById('vw-list').className = `p-1.5 rounded ${v==='list'?'text-acid-400':'text-slate-500 hover:text-white'}`;
+  renderAssets();
+}
+
+// ===== ASSET DETAIL =====
+function showDetail(id) {
+  const a = appState.assets.find(x => x.id===id);
+  if(!a) return;
+  document.getElementById('detail-title').textContent = a.name;
+  document.getElementById('detail-img').src = a.img;
+  document.getElementById('detail-conf').textContent = (a.conf*100).toFixed(1)+'%';
+  document.getElementById('detail-zone').textContent = a.loc;
+  document.getElementById('detail-id').textContent = 'ID:'+a.id;
+  document.getElementById('detail-time').textContent = a.time;
+  document.getElementById('detail-tags').innerHTML = a.tags.split(' ').map(t=>`<span class="tag">${t}</span>`).join('');
+  openModal('asset-detail-modal');
+  lucide.createIcons();
+}
+
+function deleteAsset(id) {
+  appState.assets = appState.assets.filter(a => a.id!==id);
+  renderAssets(); renderAssetTable();
+  log('DELETE', `Asset ${id} removed.`, 'red');
+  showToast('Asset deleted');
+}
+
+// ===== MODALS =====
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.addEventListener('keydown', e => { if(e.key==='Escape') document.querySelectorAll('.modal-wrap.open').forEach(m=>m.classList.remove('open')); });
+document.addEventListener('keydown', e => { if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();openModal('search-modal');} });
+
+// ===== UPLOAD =====
+async function handleUpload(e) {
+  const files = Array.from(e.target.files);
+  if(!files.length) return;
+  const prog = document.getElementById('upload-progress');
+  prog.classList.remove('hidden');
+  log('QUEUE', `Batch upload: ${files.length} assets`, 'brand');
+  for(let i=0;i<files.length;i++) {
+    document.getElementById('up-prog-text').textContent = `Processing ${i+1}/${files.length}`;
+    const pct = Math.round(((i+1)/files.length)*100);
+    document.getElementById('up-prog-pct').textContent = pct+'%';
+    document.getElementById('up-prog-bar').style.width = pct+'%';
+    await sleep(500);
+    const asset = {
+      id: uuid(), name: `Uploaded Asset [${i}]`, conf: 0.88+Math.random()*0.1,
+      loc: 'Local Client', tags: 'batch upload user', img: URL.createObjectURL(files[i]), time: 'Just now'
+    };
+    appState.assets.unshift(asset);
+    log('INGEST', `Vector encoded: ${asset.name}`, 'acid');
+  }
+  renderAssets();
+  prog.classList.add('hidden');
+  closeModal('upload-modal');
+  showToast(`${files.length} asset(s) uploaded`);
+  e.target.value='';
+}
+
+// DnD
+const dz = document.getElementById('dropzone-el');
+if(dz) {
+  dz.addEventListener('dragover', e=>{e.preventDefault();dz.classList.add('drop-active');});
+  dz.addEventListener('dragleave', ()=>dz.classList.remove('drop-active'));
+  dz.addEventListener('drop', e=>{e.preventDefault();dz.classList.remove('drop-active');const dt=new DataTransfer();Array.from(e.dataTransfer.files).forEach(f=>dt.items.add(f));document.getElementById('file-input').files=dt.files;handleUpload({target:document.getElementById('file-input')});});
+}
+
+// ===== LIVE SCAN =====
+let scanRunning=false, scanInterval=null;
+function startLiveScan() {
+  scanRunning=true;
+  document.getElementById('scan-status').textContent='SCANNING';
+  document.getElementById('scan-status').className='glass px-2.5 py-1 rounded-lg text-[10px] font-mono text-acid-400 border border-acid-400/20 animate-pulse';
+  document.getElementById('detect-box').classList.remove('hidden');
+  log('RTC','Live scan started','acid');
+  addScanLog('Scan initiated — detecting objects...');
+  scanInterval=setInterval(()=>{ addScanLog(`Frame ${Math.floor(Math.random()*9999)} analyzed — ${(88+Math.random()*10).toFixed(1)}% match`); },2000);
+}
+function stopScan() {
+  scanRunning=false;
+  clearInterval(scanInterval);
+  document.getElementById('scan-status').textContent='IDLE';
+  document.getElementById('scan-status').className='glass px-2.5 py-1 rounded-lg text-[10px] font-mono text-slate-400 border border-white/10';
+  document.getElementById('detect-box').classList.add('hidden');
+  log('RTC','Scan stopped','slate');
+  addScanLog('Scan stopped.');
+}
+function captureFrame() {
+  const asset={id:uuid(),name:'Live Capture',conf:0.97,loc:'Sensor Array 1',tags:'live camera rtc',img:'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=600&q=80',time:'Just now'};
+  appState.assets.unshift(asset);
+  renderAssets();
+  log('CAPTURE','Frame captured + vectorized','acid');
+  addScanLog('Frame captured. Asset added to library.');
+  showToast('Frame captured!');
+}
+function captureModalFrame() {
+  captureFrame();
+  document.getElementById('cam-detect-box').classList.remove('hidden');
+  setTimeout(()=>closeModal('cam-modal'),1200);
+}
+function clearScanLog() { document.getElementById('scan-log').innerHTML=''; }
+function addScanLog(msg) {
+  const el=document.getElementById('scan-log');
+  const t=new Date().toLocaleTimeString([],{hour12:false});
+  el.innerHTML+=`<div><span class="text-acid-400">[${t}]</span> ${msg}</div>`;
+  el.scrollTop=el.scrollHeight;
+}
+
+// ===== ANALYTICS =====
+function renderAnalytics() {
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const vals=[45,82,61,93,55,110,127];
+  const max=Math.max(...vals);
+  const bc=document.getElementById('bar-chart');
+  const bl=document.getElementById('bar-labels');
+  if(bc) bc.innerHTML=vals.map((v,i)=>`<div class="flex-1 flex flex-col items-center gap-1"><div class="chart-bar w-full bg-gradient-to-t from-acid-600 to-acid-400 opacity-80 hover:opacity-100 transition cursor-pointer" style="height:${(v/max)*100}%" title="${v} scans"></div></div>`).join('');
+  if(bl) bl.innerHTML=days.map(d=>`<span>${d}</span>`).join('');
+
+  const hg=document.getElementById('heatmap-grid');
+  if(hg) {
+    const zones=['Studio 1','Conf B','Lobby','Security','Corridor','Server Rm','Parking','Roof'];
+    const heat=[0.9,0.6,0.8,0.4,0.2,0.1,0.05,0.3];
+    hg.innerHTML=zones.map((z,i)=>`<div class="rounded-xl p-3 text-center border border-white/5 cursor-pointer hover:scale-105 transition" style="background:rgba(184,255,87,${heat[i]*0.25})"><p class="text-[9px] font-mono text-acid-400 opacity-70">${(heat[i]*100).toFixed(0)}%</p><p class="text-[10px] text-slate-400 mt-1">${z}</p></div>`).join('');
+  }
+  const tl=document.getElementById('top-assets-list');
+  if(tl) {
+    tl.innerHTML=appState.assets.slice(0,4).map(a=>`<div class="flex items-center gap-3"><img src="${a.img}" class="w-10 h-10 rounded-xl object-cover border border-white/10 shrink-0"><div class="flex-1"><p class="text-xs font-semibold text-white">${a.name}</p><div class="h-1 bg-white/10 rounded-full mt-1"><div class="conf-bar h-full" style="width:${(a.conf*100)}%"></div></div></div><span class="font-mono text-xs text-acid-400">${(a.conf*100).toFixed(0)}%</span></div>`).join('');
+  }
+}
+
+// ===== API CONSOLE =====
+document.querySelectorAll('.api-method-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.api-method-btn').forEach(b=>{b.classList.remove('bg-acid-500/10','text-acid-400','border-acid-500/30');b.classList.add('border-white/10','text-slate-400');});
+    btn.classList.add('bg-acid-500/10','text-acid-400','border-acid-500/30');
+    btn.classList.remove('border-white/10','text-slate-400');
+  });
+});
+
+async function sendApiRequest() {
+  const url = (document.getElementById('backend-url')?.value || appState.backendUrl) + document.getElementById('api-endpoint').value;
+  const method = document.querySelector('.api-method-btn.bg-acid-500\\/10')?.dataset.method || 'GET';
+  const body = document.getElementById('api-body').value;
+  document.getElementById('api-status').textContent = 'LOADING...';
+  document.getElementById('api-status').className = 'text-[10px] font-mono text-amber-400';
+  document.getElementById('api-response').textContent = '// Sending request...';
+  try {
+    const opts = { method, headers: {'Content-Type':'application/json','X-API-Key':'sk_live_alpha_0987654321'} };
+    if(body && method!=='GET') opts.body=body;
+    const res = await fetch(url, opts);
+    const data = await res.json();
+    document.getElementById('api-response').textContent = JSON.stringify(data, null, 2);
+    document.getElementById('api-status').textContent = `${res.status} OK`;
+    document.getElementById('api-status').className = 'text-[10px] font-mono text-acid-400';
+    log('API', `${method} ${document.getElementById('api-endpoint').value} → ${res.status}`, 'acid');
+  } catch(e) {
+    document.getElementById('api-response').textContent = `// Error: ${e.message}\n// Make sure backend is running at ${appState.backendUrl}`;
+    document.getElementById('api-status').textContent = 'ERROR';
+    document.getElementById('api-status').className = 'text-[10px] font-mono text-red-400';
+    log('ERROR', `API call failed: ${e.message}`, 'red');
+  }
+}
+
+// ===== SETTINGS =====
+function toggleApiKey() {
+  const inp=document.getElementById('api-key-inp');
+  const ico=document.getElementById('eye-icon');
+  if(inp.type==='password'){inp.type='text';ico.setAttribute('data-lucide','eye-off');}else{inp.type='password';ico.setAttribute('data-lucide','eye');}
+  lucide.createIcons();
+}
+function copyApiKey() { navigator.clipboard.writeText(document.getElementById('api-key-inp').value); showToast('API key copied!'); }
+function saveSettings() { appState.backendUrl = document.getElementById('backend-url').value; showToast('Settings saved!'); log('SYS','Settings updated','acid'); }
+function saveWebhook() { closeModal('webhook-modal'); showToast('Webhook saved!'); log('WEBHOOK','Webhook registered','acid'); }
+
+// ===== SEARCH =====
+function liveSearch(q) {
+  const el=document.getElementById('search-results');
+  if(!q.trim()){el.innerHTML='<p class="text-xs font-mono text-slate-600 px-3 py-2">Type to search...</p>';return;}
+  const res=appState.assets.filter(a=>a.name.toLowerCase().includes(q.toLowerCase())||a.tags.includes(q.toLowerCase()));
+  if(!res.length){el.innerHTML='<p class="text-xs font-mono text-slate-600 px-3 py-2">No results found.</p>';return;}
+  el.innerHTML=res.map(a=>`<div class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 cursor-pointer" onclick="closeModal('search-modal');showDetail('${a.id}')"><img src="${a.img}" class="w-10 h-10 rounded-xl object-cover shrink-0"><div><p class="text-sm text-white font-medium">${a.name}</p><p class="text-[10px] font-mono text-slate-500">${a.loc}</p></div><span class="ml-auto font-mono text-xs text-acid-400">${(a.conf*100).toFixed(0)}%</span></div>`).join('');
+}
+
+// ===== QUICK ACTIONS =====
+async function doAction(act) {
+  if(act==='sync'){log('SYNC','Vector DB sync initiated...','purple');showToast('Sync started!');await sleep(1500);log('SYNC','Sync complete — 0 new vectors','acid');}
+  if(act==='export'){log('EXPORT','Exporting asset catalog...','acid');showToast('Export initiated!');const blob=new Blob([JSON.stringify(appState.assets,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='smarttrace_export.json';a.click();}
+  if(act==='purge'){appState.logs=[];renderTerminal();renderFullLog();showToast('Logs purged');}
+}
+
+// ===== ALERTS =====
+function dismissAlert(btn) {
+  const card=btn.closest('.alert-bar');
+  card.style.opacity='0';card.style.transform='translateX(20px)';card.style.transition='all 0.3s ease';
+  setTimeout(()=>card.remove(),300);
+  const badge=document.getElementById('alert-badge');
+  const n=parseInt(badge.textContent)-1;
+  if(n<=0)badge.remove();else badge.textContent=n;
+  showToast('Alert dismissed');
+}
+
+// ===== DANGER =====
+function confirmDanger(msg) {
+  if(confirm(`⚠️ ${msg}\n\nThis action cannot be undone.`)) { showToast('Action completed'); log('DANGER',msg,'red'); }
+}
+
+// ===== TOAST =====
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  document.getElementById('toast-msg').textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ===== THRESHOLD SLIDER =====
+document.getElementById('conf-threshold')?.addEventListener('input', e => {
+  document.getElementById('conf-val').textContent = e.target.value+'%';
+  appState.threshold = parseInt(e.target.value)/100;
+  renderAssets();
+});
+
+// ===== LIVE COUNTERS =====
+setInterval(()=>{
+  const el=document.getElementById('fps-counter');
+  if(el) el.textContent=(58+Math.floor(Math.random()*4));
+  const lat=document.getElementById('lat-counter');
+  if(lat) lat.textContent=(10+Math.floor(Math.random()*8))+'ms';
+  const scans=document.getElementById('kpi-scans');
+  if(scans) scans.textContent=parseInt(scans.textContent||0)+Math.floor(Math.random()*2);
+},3000);
+
+// ===== FILTER LOGS =====
+function filterLogs(type) {
+  const el=document.getElementById('full-log');
+  const data=type?appState.logs.filter(l=>l.type===type):appState.logs;
+  el.innerHTML=data.slice().reverse().map(l=>`<div class="mb-1"><span class="opacity-30">[${l.t}]</span> <span class="text-${l.color}-400 font-bold">${l.type}</span><span class="opacity-30 mr-2"> :: </span><span class="text-slate-300">${l.msg}</span></div>`).join('');
+}
+function clearLogs() { appState.logs=[]; renderFullLog(); showToast('Logs cleared'); }
+
+// ===== INIT =====
+lucide.createIcons();
+renderAssets();
+renderAssetTable();
+log('INIT','SmartTrace World-Class Engine mounted.','acid');
+log('SYS','Vector DB connected — 4 assets indexed.','emerald');
+log('RTC','WebSocket node active — 0ms latency.','purple');
+log('AUTH','Enterprise tier verified.','slate');
+</script>
+</body>
+</html>
